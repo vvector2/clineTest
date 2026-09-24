@@ -1,0 +1,59 @@
+using ClineTestCore.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace ClineTestInfra.DAL;
+
+public class ClineTestDbContext : DbContext
+{
+    public ClineTestDbContext(DbContextOptions<ClineTestDbContext> options)
+        : base(options)
+    {
+    }
+
+    public DbSet<Movie> Movies => Set<Movie>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        var movie = modelBuilder.Entity<Movie>();
+
+        movie.ToTable("movies");
+        movie.HasKey(m => m.Id);
+        movie.Property(m => m.Title).HasMaxLength(200);
+        movie.Property(m => m.Description).HasMaxLength(1000);
+        movie.Property(m => m.Director).HasMaxLength(200);
+        movie.Property(m => m.Overview).HasMaxLength(2000);
+        movie.Property(m => m.OriginalLanguage).HasMaxLength(100);
+
+        movie.HasData(
+            new Movie
+            {
+                Id = Guid.Parse("3f2504e0-4f89-41d3-9a0c-0305e82c3301"),
+                Title = "The Shawshank Redemption",
+                Year = 1994,
+                Description = "Two imprisoned men bond over a number of years.",
+                Director = "Frank Darabont",
+                Overview = "A banker convicted of uxoricide forms a friendship over a quarter century with a hardened convict.",
+                OriginalLanguage = "English"
+            },
+            new Movie
+            {
+                Id = Guid.Parse("3f2504e0-4f89-41d3-9a0c-0305e82c3302"),
+                Title = "The Godfather",
+                Year = 1972,
+                Description = "The aging patriarch of an organized crime dynasty transfers control to his reluctant son.",
+                Director = "Francis Ford Coppola",
+                Overview = "The story of the Corleone family under patriarch Vito Corleone.",
+                OriginalLanguage = "English"
+            },
+            new Movie
+            {
+                Id = Guid.Parse("3f2504e0-4f89-41d3-9a0c-0305e82c3303"),
+                Title = "Parasite",
+                Year = 2019,
+                Description = "Greed and class discrimination threaten the newly formed symbiotic relationship between two families.",
+                Director = "Bong Joon-ho",
+                Overview = "A poor family schemes to become employed by a wealthy family by infiltrating their household.",
+                OriginalLanguage = "Korean"
+            });
+    }
+}

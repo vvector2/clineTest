@@ -4,3 +4,8 @@ GET {{ClientTestApi_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+GET {{ClientTestApi_HostAddress}}/movies/
+Accept: application/json
+
+###
