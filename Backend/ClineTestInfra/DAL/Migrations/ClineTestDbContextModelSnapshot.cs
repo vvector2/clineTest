@@ -48,6 +48,11 @@ namespace ClineTestInfra.DAL.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("varchar(2000)");
 
+                    b.Property<string>("PosterUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -68,6 +73,7 @@ namespace ClineTestInfra.DAL.Migrations
                             Director = "Frank Darabont",
                             OriginalLanguage = "English",
                             Overview = "A banker convicted of uxoricide forms a friendship over a quarter century with a hardened convict.",
+                            PosterUrl = "https://image.tmdb.org/t/p/w500/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg",
                             Title = "The Shawshank Redemption",
                             Year = 1994
                         },
@@ -78,6 +84,7 @@ namespace ClineTestInfra.DAL.Migrations
                             Director = "Francis Ford Coppola",
                             OriginalLanguage = "English",
                             Overview = "The story of the Corleone family under patriarch Vito Corleone.",
+                            PosterUrl = "https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg",
                             Title = "The Godfather",
                             Year = 1972
                         },
@@ -88,6 +95,7 @@ namespace ClineTestInfra.DAL.Migrations
                             Director = "Bong Joon-ho",
                             OriginalLanguage = "Korean",
                             Overview = "A poor family schemes to become employed by a wealthy family by infiltrating their household.",
+                            PosterUrl = "https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg",
                             Title = "Parasite",
                             Year = 2019
                         });

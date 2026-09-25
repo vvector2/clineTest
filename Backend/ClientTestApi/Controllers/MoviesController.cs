@@ -42,6 +42,6 @@ public class MoviesController : ControllerBase
     public async Task<ActionResult<Guid>> CreateAsync(CreateMovieCommand command, CancellationToken cancellationToken)
     {
         var movieId = await _mediator.Send(command, cancellationToken);
-        return CreatedAtAction(nameof(GetByIdAsync), new { id = movieId }, movieId);
+        return StatusCode(StatusCodes.Status201Created, movieId);
     }
 }

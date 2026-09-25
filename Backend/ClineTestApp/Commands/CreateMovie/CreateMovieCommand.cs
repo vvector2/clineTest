@@ -26,4 +26,9 @@ public sealed record CreateMovieCommand : IRequest<Guid>
     [Required]
     [MaxLength(100)]
     public required string OriginalLanguage { get; init; }
+
+    [Required]
+    [Url]
+    [MaxLength(500)]
+    public required string PosterUrl { get; init; }
 }

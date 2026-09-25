@@ -11,5 +11,6 @@ public class Movie
     public required string Director { get; set; }
     public required string Overview { get; set; }
     public required string OriginalLanguage { get; set; }
+    public required string PosterUrl { get; set; }
 }
 

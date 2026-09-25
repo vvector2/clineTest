@@ -23,6 +23,7 @@ public class ClineTestDbContext : DbContext
         movie.Property(m => m.Director).HasMaxLength(200);
         movie.Property(m => m.Overview).HasMaxLength(2000);
         movie.Property(m => m.OriginalLanguage).HasMaxLength(100);
+        movie.Property(m => m.PosterUrl).HasMaxLength(500);
 
         movie.HasData(
             new Movie
@@ -33,7 +34,8 @@ public class ClineTestDbContext : DbContext
                 Description = "Two imprisoned men bond over a number of years.",
                 Director = "Frank Darabont",
                 Overview = "A banker convicted of uxoricide forms a friendship over a quarter century with a hardened convict.",
-                OriginalLanguage = "English"
+                OriginalLanguage = "English",
+                PosterUrl = "https://image.tmdb.org/t/p/w500/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg"
             },
             new Movie
             {
@@ -43,7 +45,8 @@ public class ClineTestDbContext : DbContext
                 Description = "The aging patriarch of an organized crime dynasty transfers control to his reluctant son.",
                 Director = "Francis Ford Coppola",
                 Overview = "The story of the Corleone family under patriarch Vito Corleone.",
-                OriginalLanguage = "English"
+                OriginalLanguage = "English",
+                PosterUrl = "https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg"
             },
             new Movie
             {
@@ -53,7 +56,8 @@ public class ClineTestDbContext : DbContext
                 Description = "Greed and class discrimination threaten the newly formed symbiotic relationship between two families.",
                 Director = "Bong Joon-ho",
                 Overview = "A poor family schemes to become employed by a wealthy family by infiltrating their household.",
-                OriginalLanguage = "Korean"
+                OriginalLanguage = "Korean",
+                PosterUrl = "https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg"
             });
     }
 }
