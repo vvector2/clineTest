@@ -53,7 +53,8 @@ public class MoviesController : ControllerBase
     [Consumes("multipart/form-data")]
     public async Task<ActionResult<UpdateMoviePosterResponse>> UpdatePosterAsync(
         [FromForm] UpdateMoviePosterRequest request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         if (request.Poster.Length == 0)
         {
@@ -62,9 +63,7 @@ public class MoviesController : ControllerBase
 
         if (request.Poster.Length > MaxPosterSizeInBytes)
         {
-            ModelState.AddModelError(
-                nameof(request.Poster),
-                $"The poster file must not exceed {MaxPosterSizeInBytes / (1024 * 1024)} megabytes.");
+            ModelState.AddModelError(nameof(request.Poster), $"The poster file must not exceed {MaxPosterSizeInBytes / (1024 * 1024)} megabytes.");
         }
 
         if (!request.Poster.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
@@ -87,7 +86,7 @@ public class MoviesController : ControllerBase
             MovieId = request.MovieId,
             Content = content,
             FileName = request.Poster.FileName,
-            ContentType = request.Poster.ContentType
+            ContentType = request.Poster.ContentType,
         };
 
         var posterUrl = await _mediator.Send(command, cancellationToken);

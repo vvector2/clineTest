@@ -6,9 +6,7 @@ namespace ClineTestInfra.DAL;
 public class ClineTestDbContext : DbContext
 {
     public ClineTestDbContext(DbContextOptions<ClineTestDbContext> options)
-        : base(options)
-    {
-    }
+        : base(options) { }
 
     public DbSet<Movie> Movies => Set<Movie>();
 
@@ -35,7 +33,7 @@ public class ClineTestDbContext : DbContext
                 Director = "Frank Darabont",
                 Overview = "A banker convicted of uxoricide forms a friendship over a quarter century with a hardened convict.",
                 OriginalLanguage = "English",
-                PosterUrl = "https://image.tmdb.org/t/p/w500/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg"
+                PosterUrl = "https://image.tmdb.org/t/p/w500/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg",
             },
             new Movie
             {
@@ -46,7 +44,7 @@ public class ClineTestDbContext : DbContext
                 Director = "Francis Ford Coppola",
                 Overview = "The story of the Corleone family under patriarch Vito Corleone.",
                 OriginalLanguage = "English",
-                PosterUrl = "https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg"
+                PosterUrl = "https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg",
             },
             new Movie
             {
@@ -57,7 +55,8 @@ public class ClineTestDbContext : DbContext
                 Director = "Bong Joon-ho",
                 Overview = "A poor family schemes to become employed by a wealthy family by infiltrating their household.",
                 OriginalLanguage = "Korean",
-                PosterUrl = "https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg"
-            });
+                PosterUrl = "https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg",
+            }
+        );
     }
 }

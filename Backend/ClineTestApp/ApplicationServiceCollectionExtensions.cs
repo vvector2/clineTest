@@ -8,8 +8,7 @@ public static class ApplicationServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        services.AddMediatR(configuration =>
-            configuration.RegisterServicesFromAssembly(typeof(ApplicationServiceCollectionExtensions).Assembly));
+        services.AddMediatR(configuration => configuration.RegisterServicesFromAssembly(typeof(ApplicationServiceCollectionExtensions).Assembly));
 
         return services;
     }

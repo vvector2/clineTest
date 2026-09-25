@@ -24,7 +24,7 @@ public sealed class CreateMovieCommandHandler : IRequestHandler<CreateMovieComma
             Director = request.Director,
             Overview = request.Overview,
             OriginalLanguage = request.OriginalLanguage,
-            PosterUrl = request.PosterUrl
+            PosterUrl = request.PosterUrl,
         };
 
         await _movieRepository.AddAsync(movie, cancellationToken);

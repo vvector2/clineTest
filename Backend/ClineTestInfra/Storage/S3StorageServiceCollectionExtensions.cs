@@ -31,7 +31,7 @@ public static class S3StorageServiceCollectionExtensions
             ServiceUrl = ResolveValue(section[nameof(StorageOptions.ServiceUrl)], "CLINETEST_S3_SERVICE_URL"),
             PublicBaseUrl = ResolveValue(section[nameof(StorageOptions.PublicBaseUrl)], "CLINETEST_S3_PUBLIC_BASE_URL"),
             AccessKey = ResolveValue(section[nameof(StorageOptions.AccessKey)], "CLINETEST_S3_ACCESS_KEY"),
-            SecretKey = ResolveValue(section[nameof(StorageOptions.SecretKey)], "CLINETEST_S3_SECRET_KEY")
+            SecretKey = ResolveValue(section[nameof(StorageOptions.SecretKey)], "CLINETEST_S3_SECRET_KEY"),
         };
 
         var forcePathStyle = ResolveValue(section[nameof(StorageOptions.ForcePathStyle)], "CLINETEST_S3_FORCE_PATH_STYLE");
@@ -43,14 +43,12 @@ public static class S3StorageServiceCollectionExtensions
 
         if (string.IsNullOrWhiteSpace(options.BucketName))
         {
-            throw new InvalidOperationException(
-                "S3 bucket name is not configured. Set the CLINETEST_S3_BUCKET environment variable.");
+            throw new InvalidOperationException("S3 bucket name is not configured. Set the CLINETEST_S3_BUCKET environment variable.");
         }
 
         if (string.IsNullOrWhiteSpace(options.Region))
         {
-            throw new InvalidOperationException(
-                "S3 region is not configured. Set the CLINETEST_S3_REGION environment variable.");
+            throw new InvalidOperationException("S3 region is not configured. Set the CLINETEST_S3_REGION environment variable.");
         }
 
         return options;
@@ -58,17 +56,12 @@ public static class S3StorageServiceCollectionExtensions
 
     private static string? ResolveValue(string? value, string environmentVariable)
     {
-        return string.IsNullOrWhiteSpace(value)
-            ? Environment.GetEnvironmentVariable(environmentVariable)
-            : value;
+        return string.IsNullOrWhiteSpace(value) ? Environment.GetEnvironmentVariable(environmentVariable) : value;
     }
 
     private static IAmazonS3 CreateClient(StorageOptions options)
     {
-        var config = new AmazonS3Config
-        {
-            ForcePathStyle = options.ForcePathStyle
-        };
+        var config = new AmazonS3Config { ForcePathStyle = options.ForcePathStyle };
 
         if (string.IsNullOrWhiteSpace(options.ServiceUrl))
         {
@@ -81,8 +74,7 @@ public static class S3StorageServiceCollectionExtensions
             config.RequestChecksumCalculation = RequestChecksumCalculation.WHEN_REQUIRED;
         }
 
-        var hasCredentials = !string.IsNullOrWhiteSpace(options.AccessKey)
-            && !string.IsNullOrWhiteSpace(options.SecretKey);
+        var hasCredentials = !string.IsNullOrWhiteSpace(options.AccessKey) && !string.IsNullOrWhiteSpace(options.SecretKey);
 
         return hasCredentials
             ? new AmazonS3Client(new BasicAWSCredentials(options.AccessKey, options.SecretKey), config)

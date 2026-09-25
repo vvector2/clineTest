@@ -1,6 +1,4 @@
-﻿
-
-namespace ClineTestCore.Models;
+﻿namespace ClineTestCore.Models;
 
 public class Movie
 {
@@ -13,4 +11,3 @@ public class Movie
     public required string OriginalLanguage { get; set; }
     public required string PosterUrl { get; set; }
 }
-

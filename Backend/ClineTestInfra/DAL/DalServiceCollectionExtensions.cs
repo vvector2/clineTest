@@ -34,7 +34,8 @@ public static class DalServiceCollectionExtensions
         if (string.IsNullOrWhiteSpace(connectionString))
         {
             throw new InvalidOperationException(
-                "MySQL connection string is not configured. Set the ConnectionStrings__DefaultConnection or CLINETEST_DB_CONNECTION environment variable.");
+                "MySQL connection string is not configured. Set the ConnectionStrings__DefaultConnection or CLINETEST_DB_CONNECTION environment variable."
+            );
         }
 
         return connectionString;

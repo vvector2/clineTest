@@ -23,7 +23,7 @@ public sealed class S3FileStorage : IFileStorage
             Key = key,
             InputStream = content,
             ContentType = contentType,
-            AutoCloseStream = false
+            AutoCloseStream = false,
         };
 
         await _s3Client.PutObjectAsync(request, cancellationToken);
@@ -33,9 +33,7 @@ public sealed class S3FileStorage : IFileStorage
 
     private string BuildObjectUrl(string key)
     {
-        var baseUrl = string.IsNullOrWhiteSpace(_options.PublicBaseUrl)
-            ? _options.ServiceUrl
-            : _options.PublicBaseUrl;
+        var baseUrl = string.IsNullOrWhiteSpace(_options.PublicBaseUrl) ? _options.ServiceUrl : _options.PublicBaseUrl;
 
         if (!string.IsNullOrWhiteSpace(baseUrl))
         {
