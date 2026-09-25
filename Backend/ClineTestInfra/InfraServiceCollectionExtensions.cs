@@ -1,4 +1,5 @@
 using ClineTestInfra.DAL;
+using ClineTestInfra.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,6 +10,7 @@ public static class InfraServiceCollectionExtensions
     public static IServiceCollection AddInfra(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDal(configuration);
+        services.AddS3Storage(configuration);
 
         return services;
     }

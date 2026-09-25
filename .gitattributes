@@ -1,0 +1,2 @@
+# Shell scripts executed inside the LocalStack container must use LF line endings.
+docker/localstack/init/ready.d/*.sh text eol=lf

@@ -34,4 +34,21 @@ public class MovieRepository : IMovieRepository
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<bool> UpdatePosterUrlAsync(Guid id, string posterUrl, CancellationToken cancellationToken = default)
+    {
+        var movie = await _dbContext.Movies
+            .FirstOrDefaultAsync(movie => movie.Id == id, cancellationToken);
+
+        if (movie is null)
+        {
+            return false;
+        }
+
+        movie.PosterUrl = posterUrl;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return true;
+    }
 }

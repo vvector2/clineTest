@@ -1,4 +1,6 @@
+using ClientTestApi.Models;
 using ClineTestApp.Commands.CreateMovie;
+using ClineTestApp.Commands.UpdateMoviePoster;
 using ClineTestApp.Queries.GetMovieById;
 using ClineTestApp.Queries.GetMovies;
 using ClineTestCore.Models;
@@ -11,6 +13,8 @@ namespace ClientTestApi.Controllers;
 [Route("[controller]")]
 public class MoviesController : ControllerBase
 {
+    private const long MaxPosterSizeInBytes = 10 * 1024 * 1024;
+
     private readonly IMediator _mediator;
 
     public MoviesController(IMediator mediator)
@@ -43,5 +47,56 @@ public class MoviesController : ControllerBase
     {
         var movieId = await _mediator.Send(command, cancellationToken);
         return StatusCode(StatusCodes.Status201Created, movieId);
+    }
+
+    [HttpPut("poster", Name = "UpdateMoviePoster")]
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<UpdateMoviePosterResponse>> UpdatePosterAsync(
+        [FromForm] UpdateMoviePosterRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request.Poster.Length == 0)
+        {
+            ModelState.AddModelError(nameof(request.Poster), "The poster file must not be empty.");
+        }
+
+        if (request.Poster.Length > MaxPosterSizeInBytes)
+        {
+            ModelState.AddModelError(
+                nameof(request.Poster),
+                $"The poster file must not exceed {MaxPosterSizeInBytes / (1024 * 1024)} megabytes.");
+        }
+
+        if (!request.Poster.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+        {
+            ModelState.AddModelError(nameof(request.Poster), "The poster file must be an image.");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        await using var content = new MemoryStream();
+
+        await request.Poster.CopyToAsync(content, cancellationToken);
+        content.Position = 0;
+
+        var command = new UpdateMoviePosterCommand
+        {
+            MovieId = request.MovieId,
+            Content = content,
+            FileName = request.Poster.FileName,
+            ContentType = request.Poster.ContentType
+        };
+
+        var posterUrl = await _mediator.Send(command, cancellationToken);
+
+        if (posterUrl is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(new UpdateMoviePosterResponse(posterUrl));
     }
 }

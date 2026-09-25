@@ -9,4 +9,6 @@ public interface IMovieRepository
     Task<Movie?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     Task AddAsync(Movie movie, CancellationToken cancellationToken = default);
+
+    Task<bool> UpdatePosterUrlAsync(Guid id, string posterUrl, CancellationToken cancellationToken = default);
 }
