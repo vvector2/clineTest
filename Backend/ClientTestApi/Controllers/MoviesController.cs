@@ -83,7 +83,7 @@ public class MoviesController : ControllerBase
 
         var command = new UpdateMoviePosterCommand
         {
-            MovieId = request.MovieId,
+            MovieId = request.MovieId!.Value,
             Content = content,
             FileName = request.Poster.FileName,
             ContentType = request.Poster.ContentType,
