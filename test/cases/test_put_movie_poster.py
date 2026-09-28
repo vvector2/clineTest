@@ -4,6 +4,8 @@ import zlib
 
 from fixtures.seeds import SEED_MOVIE_ONE_ID, seed_movie
 
+MAX_POSTER_SIZE_IN_BYTES = 10 * 1024 * 1024
+
 
 def make_png_bytes(width=1, height=1):
     def chunk(kind, payload):
@@ -65,6 +67,15 @@ def test_put_movie_poster_rejects_non_image_file(api_client, seeded_database):
 
 def test_put_movie_poster_rejects_empty_file(api_client, seeded_database):
     response = api_client.put_movie_poster(SEED_MOVIE_ONE_ID, b"")
+
+    assert response.status_code == 400
+    assert seeded_database.get(SEED_MOVIE_ONE_ID)["PosterUrl"] == seed_movie(SEED_MOVIE_ONE_ID)["PosterUrl"]
+
+
+def test_put_movie_poster_rejects_poster_larger_than_the_limit(api_client, seeded_database):
+    oversized = make_png_bytes() + b"\x00" * MAX_POSTER_SIZE_IN_BYTES
+
+    response = api_client.put_movie_poster(SEED_MOVIE_ONE_ID, oversized)
 
     assert response.status_code == 400
     assert seeded_database.get(SEED_MOVIE_ONE_ID)["PosterUrl"] == seed_movie(SEED_MOVIE_ONE_ID)["PosterUrl"]

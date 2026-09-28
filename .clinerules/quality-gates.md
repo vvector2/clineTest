@@ -7,4 +7,4 @@ Quality gates listed below:
 - format
 - unit test
 - sonar
-- integration tests
+- integration-tests
