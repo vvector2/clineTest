@@ -3,6 +3,7 @@ using ClineTestApp.Commands.CreateMovie;
 using ClineTestApp.Commands.UpdateMoviePoster;
 using ClineTestApp.Queries.GetMovieById;
 using ClineTestApp.Queries.GetMovies;
+using ClineTestApp.Queries.SearchMovies;
 using ClineTestCore.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -23,9 +24,12 @@ public class MoviesController : ControllerBase
     }
 
     [HttpGet(Name = "GetMovies")]
-    public async Task<ActionResult<IEnumerable<Movie>>> GetAsync(CancellationToken cancellationToken)
+    public async Task<ActionResult<IEnumerable<Movie>>> GetAsync([FromQuery] string? query, CancellationToken cancellationToken)
     {
-        var movies = await _mediator.Send(new GetMoviesQuery(), cancellationToken);
+        var movies = string.IsNullOrWhiteSpace(query)
+            ? await _mediator.Send(new GetMoviesQuery(), cancellationToken)
+            : await _mediator.Send(new SearchMoviesQuery(query), cancellationToken);
+
         return Ok(movies);
     }
 

@@ -1,7 +1,7 @@
 # Movies API integration tests
 
 Pytest based integration tests that exercise the running `ClientTestApi` over HTTP against the
-real MySQL database and the LocalStack S3 bucket.
+real MySQL database, the LocalStack S3 bucket and Elasticsearch.
 
 ## Layout
 

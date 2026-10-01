@@ -3,6 +3,7 @@ using ClineTestApp.Commands.CreateMovie;
 using ClineTestApp.Commands.UpdateMoviePoster;
 using ClineTestApp.Queries.GetMovieById;
 using ClineTestApp.Queries.GetMovies;
+using ClineTestApp.Queries.SearchMovies;
 using ClineTestCore.Models;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +38,7 @@ public class ApplicationServiceCollectionExtensionsTests
         services.AddApplication();
 
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(IRequestHandler<GetMoviesQuery, IEnumerable<Movie>>));
+        Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(IRequestHandler<SearchMoviesQuery, IEnumerable<Movie>>));
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(IRequestHandler<GetMovieByIdQuery, Movie?>));
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(IRequestHandler<CreateMovieCommand, Guid>));
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(IRequestHandler<UpdateMoviePosterCommand, string?>));

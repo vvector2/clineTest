@@ -1,6 +1,7 @@
 using ClineTestApp.Commands.UpdateMoviePoster;
 using ClineTestCore.Models;
 using ClineTestCore.Repositories;
+using ClineTestCore.Search;
 using ClineTestCore.Storage;
 using Moq;
 
@@ -12,11 +13,12 @@ public class UpdateMoviePosterCommandHandlerTests
 
     private readonly Mock<IMovieRepository> _movieRepository = new();
     private readonly Mock<IFileStorage> _fileStorage = new();
+    private readonly Mock<IMovieSearchService> _movieSearchService = new();
     private readonly UpdateMoviePosterCommandHandler _handler;
 
     public UpdateMoviePosterCommandHandlerTests()
     {
-        _handler = new UpdateMoviePosterCommandHandler(_movieRepository.Object, _fileStorage.Object);
+        _handler = new UpdateMoviePosterCommandHandler(_movieRepository.Object, _fileStorage.Object, _movieSearchService.Object);
     }
 
     [Fact]
@@ -34,6 +36,23 @@ public class UpdateMoviePosterCommandHandlerTests
 
         Assert.Equal(UploadedPosterUrl, result);
         _movieRepository.Verify(repository => repository.UpdatePosterUrlAsync(movie.Id, UploadedPosterUrl, CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ReindexesMovieWithTheNewPosterUrl()
+    {
+        var movie = CreateMovie();
+        using var content = new MemoryStream([1, 2, 3]);
+        var command = CreateCommand(movie.Id, content, "poster.jpg", "image/jpeg");
+        _movieRepository.Setup(repository => repository.GetByIdAsync(movie.Id, It.IsAny<CancellationToken>())).ReturnsAsync(movie);
+        _fileStorage
+            .Setup(storage => storage.UploadAsync(It.IsAny<string>(), content, "image/jpeg", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(UploadedPosterUrl);
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        Assert.Equal(UploadedPosterUrl, movie.PosterUrl);
+        _movieSearchService.Verify(service => service.IndexAsync(movie, CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -55,6 +74,7 @@ public class UpdateMoviePosterCommandHandlerTests
             repository => repository.UpdatePosterUrlAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never
         );
+        _movieSearchService.Verify(service => service.IndexAsync(It.IsAny<Movie>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Theory]
@@ -101,6 +121,7 @@ public class UpdateMoviePosterCommandHandlerTests
             repository => repository.UpdatePosterUrlAsync(movie.Id, UploadedPosterUrl, cancellationTokenSource.Token),
             Times.Once
         );
+        _movieSearchService.Verify(service => service.IndexAsync(movie, cancellationTokenSource.Token), Times.Once);
     }
 
     private static Movie CreateMovie()

@@ -1,4 +1,5 @@
 using ClineTestCore.Repositories;
+using ClineTestCore.Search;
 using ClineTestCore.Storage;
 using MediatR;
 
@@ -8,11 +9,13 @@ public sealed class UpdateMoviePosterCommandHandler : IRequestHandler<UpdateMovi
 {
     private readonly IMovieRepository _movieRepository;
     private readonly IFileStorage _fileStorage;
+    private readonly IMovieSearchService _movieSearchService;
 
-    public UpdateMoviePosterCommandHandler(IMovieRepository movieRepository, IFileStorage fileStorage)
+    public UpdateMoviePosterCommandHandler(IMovieRepository movieRepository, IFileStorage fileStorage, IMovieSearchService movieSearchService)
     {
         _movieRepository = movieRepository;
         _fileStorage = fileStorage;
+        _movieSearchService = movieSearchService;
     }
 
     public async Task<string?> Handle(UpdateMoviePosterCommand request, CancellationToken cancellationToken)
@@ -27,6 +30,10 @@ public sealed class UpdateMoviePosterCommandHandler : IRequestHandler<UpdateMovi
         var posterUrl = await _fileStorage.UploadAsync(BuildKey(request), request.Content, request.ContentType, cancellationToken);
 
         await _movieRepository.UpdatePosterUrlAsync(movie.Id, posterUrl, cancellationToken);
+
+        movie.PosterUrl = posterUrl;
+
+        await _movieSearchService.IndexAsync(movie, cancellationToken);
 
         return posterUrl;
     }

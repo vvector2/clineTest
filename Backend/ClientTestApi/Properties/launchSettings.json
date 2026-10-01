@@ -23,7 +23,9 @@
         "CLINETEST_S3_SERVICE_URL": "http://localhost:4566",
         "CLINETEST_S3_ACCESS_KEY": "test",
         "CLINETEST_S3_SECRET_KEY": "test",
-        "CLINETEST_S3_FORCE_PATH_STYLE": "true"
+        "CLINETEST_S3_FORCE_PATH_STYLE": "true",
+        "CLINETEST_ELASTICSEARCH_URL": "http://localhost:9200",
+        "CLINETEST_ELASTICSEARCH_INDEX": "movies"
       }
     },
     "https": {
@@ -40,7 +42,9 @@
         "CLINETEST_S3_SERVICE_URL": "http://localhost:4566",
         "CLINETEST_S3_ACCESS_KEY": "test",
         "CLINETEST_S3_SECRET_KEY": "test",
-        "CLINETEST_S3_FORCE_PATH_STYLE": "true"
+        "CLINETEST_S3_FORCE_PATH_STYLE": "true",
+        "CLINETEST_ELASTICSEARCH_URL": "http://localhost:9200",
+        "CLINETEST_ELASTICSEARCH_INDEX": "movies"
       }
     },
     "IIS Express": {

@@ -1,6 +1,7 @@
 using ClineTestApp.Commands.CreateMovie;
 using ClineTestCore.Models;
 using ClineTestCore.Repositories;
+using ClineTestCore.Search;
 using Moq;
 
 namespace ClineTestAppUnitTests;
@@ -8,11 +9,12 @@ namespace ClineTestAppUnitTests;
 public class CreateMovieCommandHandlerTests
 {
     private readonly Mock<IMovieRepository> _movieRepository = new();
+    private readonly Mock<IMovieSearchService> _movieSearchService = new();
     private readonly CreateMovieCommandHandler _handler;
 
     public CreateMovieCommandHandlerTests()
     {
-        _handler = new CreateMovieCommandHandler(_movieRepository.Object);
+        _handler = new CreateMovieCommandHandler(_movieRepository.Object, _movieSearchService.Object);
     }
 
     [Fact]
@@ -49,13 +51,30 @@ public class CreateMovieCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ForwardsCancellationTokenToRepository()
+    public async Task Handle_IndexesTheCreatedMovieInTheSearchService()
+    {
+        Movie? indexedMovie = null;
+        _movieSearchService
+            .Setup(service => service.IndexAsync(It.IsAny<Movie>(), It.IsAny<CancellationToken>()))
+            .Callback<Movie, CancellationToken>((movie, _) => indexedMovie = movie)
+            .Returns(Task.CompletedTask);
+
+        var movieId = await _handler.Handle(CreateCommand(), CancellationToken.None);
+
+        var movie = Assert.IsType<Movie>(indexedMovie);
+        Assert.Equal(movieId, movie.Id);
+    }
+
+    [Fact]
+    public async Task Handle_ForwardsCancellationTokenToRepositoryAndSearchService()
     {
         using var cancellationTokenSource = new CancellationTokenSource();
+        _movieSearchService.Setup(service => service.IndexAsync(It.IsAny<Movie>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         await _handler.Handle(CreateCommand(), cancellationTokenSource.Token);
 
         _movieRepository.Verify(repository => repository.AddAsync(It.IsAny<Movie>(), cancellationTokenSource.Token), Times.Once);
+        _movieSearchService.Verify(service => service.IndexAsync(It.IsAny<Movie>(), cancellationTokenSource.Token), Times.Once);
     }
 
     private static CreateMovieCommand CreateCommand()
