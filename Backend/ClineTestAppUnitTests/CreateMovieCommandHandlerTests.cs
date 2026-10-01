@@ -9,22 +9,21 @@ namespace ClineTestAppUnitTests;
 public class CreateMovieCommandHandlerTests
 {
     private readonly Mock<IMovieRepository> _movieRepository = new();
+    private readonly Mock<IUnitOfWork> _unitOfWork = new();
     private readonly Mock<IMovieSearchService> _movieSearchService = new();
     private readonly CreateMovieCommandHandler _handler;
 
     public CreateMovieCommandHandlerTests()
     {
-        _handler = new CreateMovieCommandHandler(_movieRepository.Object, _movieSearchService.Object);
+        _unitOfWork.Setup(unitOfWork => unitOfWork.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        _handler = new CreateMovieCommandHandler(_movieRepository.Object, _unitOfWork.Object, _movieSearchService.Object);
     }
 
     [Fact]
     public async Task Handle_CreatesMovieFromCommandAndReturnsGeneratedId()
     {
         Movie? persistedMovie = null;
-        _movieRepository
-            .Setup(repository => repository.AddAsync(It.IsAny<Movie>(), It.IsAny<CancellationToken>()))
-            .Callback<Movie, CancellationToken>((movie, _) => persistedMovie = movie)
-            .Returns(Task.CompletedTask);
+        _movieRepository.Setup(repository => repository.Add(It.IsAny<Movie>())).Callback<Movie>(movie => persistedMovie = movie);
         var command = new CreateMovieCommand
         {
             Title = "Inception",
@@ -66,14 +65,31 @@ public class CreateMovieCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ForwardsCancellationTokenToRepositoryAndSearchService()
+    public async Task Handle_CommitsBeforeIndexingTheCreatedMovie()
+    {
+        var calls = new List<string>();
+        _unitOfWork.Setup(unitOfWork => unitOfWork.SaveChangesAsync(It.IsAny<CancellationToken>())).Callback(() => calls.Add("save")).ReturnsAsync(1);
+        _movieSearchService
+            .Setup(service => service.IndexAsync(It.IsAny<Movie>(), It.IsAny<CancellationToken>()))
+            .Callback(() => calls.Add("index"))
+            .Returns(Task.CompletedTask);
+
+        await _handler.Handle(CreateCommand(), CancellationToken.None);
+
+        Assert.Equal(["save", "index"], calls);
+    }
+
+    [Fact]
+    public async Task Handle_ForwardsCancellationTokenToRepositoryUnitOfWorkAndSearchService()
     {
         using var cancellationTokenSource = new CancellationTokenSource();
         _movieSearchService.Setup(service => service.IndexAsync(It.IsAny<Movie>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        _unitOfWork.Setup(unitOfWork => unitOfWork.SaveChangesAsync(cancellationTokenSource.Token)).ReturnsAsync(1);
 
         await _handler.Handle(CreateCommand(), cancellationTokenSource.Token);
 
-        _movieRepository.Verify(repository => repository.AddAsync(It.IsAny<Movie>(), cancellationTokenSource.Token), Times.Once);
+        _movieRepository.Verify(repository => repository.Add(It.IsAny<Movie>()), Times.Once);
+        _unitOfWork.Verify(unitOfWork => unitOfWork.SaveChangesAsync(cancellationTokenSource.Token), Times.Once);
         _movieSearchService.Verify(service => service.IndexAsync(It.IsAny<Movie>(), cancellationTokenSource.Token), Times.Once);
     }
 

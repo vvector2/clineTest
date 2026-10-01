@@ -8,11 +8,13 @@ namespace ClineTestApp.Commands.CreateMovie;
 public sealed class CreateMovieCommandHandler : IRequestHandler<CreateMovieCommand, Guid>
 {
     private readonly IMovieRepository _movieRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IMovieSearchService _movieSearchService;
 
-    public CreateMovieCommandHandler(IMovieRepository movieRepository, IMovieSearchService movieSearchService)
+    public CreateMovieCommandHandler(IMovieRepository movieRepository, IUnitOfWork unitOfWork, IMovieSearchService movieSearchService)
     {
         _movieRepository = movieRepository;
+        _unitOfWork = unitOfWork;
         _movieSearchService = movieSearchService;
     }
 
@@ -30,7 +32,8 @@ public sealed class CreateMovieCommandHandler : IRequestHandler<CreateMovieComma
             PosterUrl = request.PosterUrl,
         };
 
-        await _movieRepository.AddAsync(movie, cancellationToken);
+        _movieRepository.Add(movie);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
         await _movieSearchService.IndexAsync(movie, cancellationToken);
 
         return movie.Id;

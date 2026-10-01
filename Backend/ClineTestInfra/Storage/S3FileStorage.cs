@@ -15,7 +15,19 @@ public sealed class S3FileStorage : IFileStorage
         _options = options;
     }
 
-    public async Task<string> UploadAsync(string key, Stream content, string contentType, CancellationToken cancellationToken = default)
+    public string BuildUrl(string key)
+    {
+        var baseUrl = string.IsNullOrWhiteSpace(_options.PublicBaseUrl) ? _options.ServiceUrl : _options.PublicBaseUrl;
+
+        if (!string.IsNullOrWhiteSpace(baseUrl))
+        {
+            return $"{baseUrl.TrimEnd('/')}/{_options.BucketName}/{key}";
+        }
+
+        return $"https://{_options.BucketName}.s3.{_options.Region}.amazonaws.com/{key}";
+    }
+
+    public async Task UploadAsync(string key, Stream content, string contentType, CancellationToken cancellationToken = default)
     {
         var request = new PutObjectRequest
         {
@@ -27,19 +39,5 @@ public sealed class S3FileStorage : IFileStorage
         };
 
         await _s3Client.PutObjectAsync(request, cancellationToken);
-
-        return BuildObjectUrl(key);
-    }
-
-    private string BuildObjectUrl(string key)
-    {
-        var baseUrl = string.IsNullOrWhiteSpace(_options.PublicBaseUrl) ? _options.ServiceUrl : _options.PublicBaseUrl;
-
-        if (!string.IsNullOrWhiteSpace(baseUrl))
-        {
-            return $"{baseUrl.TrimEnd('/')}/{_options.BucketName}/{key}";
-        }
-
-        return $"https://{_options.BucketName}.s3.{_options.Region}.amazonaws.com/{key}";
     }
 }

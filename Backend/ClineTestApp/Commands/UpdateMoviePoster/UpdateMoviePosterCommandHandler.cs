@@ -8,12 +8,19 @@ namespace ClineTestApp.Commands.UpdateMoviePoster;
 public sealed class UpdateMoviePosterCommandHandler : IRequestHandler<UpdateMoviePosterCommand, string?>
 {
     private readonly IMovieRepository _movieRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IFileStorage _fileStorage;
     private readonly IMovieSearchService _movieSearchService;
 
-    public UpdateMoviePosterCommandHandler(IMovieRepository movieRepository, IFileStorage fileStorage, IMovieSearchService movieSearchService)
+    public UpdateMoviePosterCommandHandler(
+        IMovieRepository movieRepository,
+        IUnitOfWork unitOfWork,
+        IFileStorage fileStorage,
+        IMovieSearchService movieSearchService
+    )
     {
         _movieRepository = movieRepository;
+        _unitOfWork = unitOfWork;
         _fileStorage = fileStorage;
         _movieSearchService = movieSearchService;
     }
@@ -27,12 +34,14 @@ public sealed class UpdateMoviePosterCommandHandler : IRequestHandler<UpdateMovi
             return null;
         }
 
-        var posterUrl = await _fileStorage.UploadAsync(BuildKey(request), request.Content, request.ContentType, cancellationToken);
-
-        await _movieRepository.UpdatePosterUrlAsync(movie.Id, posterUrl, cancellationToken);
+        var key = BuildKey(request);
+        var posterUrl = _fileStorage.BuildUrl(key);
 
         movie.PosterUrl = posterUrl;
 
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        await _fileStorage.UploadAsync(key, request.Content, request.ContentType, cancellationToken);
         await _movieSearchService.IndexAsync(movie, cancellationToken);
 
         return posterUrl;

@@ -12,17 +12,20 @@ public class UpdateMoviePosterCommandHandlerTests
     private const string UploadedPosterUrl = "https://storage.example.com/posters/poster.jpg";
 
     private readonly Mock<IMovieRepository> _movieRepository = new();
+    private readonly Mock<IUnitOfWork> _unitOfWork = new();
     private readonly Mock<IFileStorage> _fileStorage = new();
     private readonly Mock<IMovieSearchService> _movieSearchService = new();
     private readonly UpdateMoviePosterCommandHandler _handler;
 
     public UpdateMoviePosterCommandHandlerTests()
     {
-        _handler = new UpdateMoviePosterCommandHandler(_movieRepository.Object, _fileStorage.Object, _movieSearchService.Object);
+        _fileStorage.Setup(storage => storage.BuildUrl(It.IsAny<string>())).Returns(UploadedPosterUrl);
+        _unitOfWork.Setup(unitOfWork => unitOfWork.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        _handler = new UpdateMoviePosterCommandHandler(_movieRepository.Object, _unitOfWork.Object, _fileStorage.Object, _movieSearchService.Object);
     }
 
     [Fact]
-    public async Task Handle_UploadsPosterAndPersistsReturnedUrl()
+    public async Task Handle_CommitsTheGeneratedUrlAndUploadsThePoster()
     {
         var movie = CreateMovie();
         using var content = new MemoryStream([1, 2, 3]);
@@ -30,12 +33,13 @@ public class UpdateMoviePosterCommandHandlerTests
         _movieRepository.Setup(repository => repository.GetByIdAsync(movie.Id, It.IsAny<CancellationToken>())).ReturnsAsync(movie);
         _fileStorage
             .Setup(storage => storage.UploadAsync($"posters/{movie.Id:D}.jpg", content, "image/jpeg", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(UploadedPosterUrl);
+            .Returns(Task.CompletedTask);
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
         Assert.Equal(UploadedPosterUrl, result);
-        _movieRepository.Verify(repository => repository.UpdatePosterUrlAsync(movie.Id, UploadedPosterUrl, CancellationToken.None), Times.Once);
+        Assert.Equal(UploadedPosterUrl, movie.PosterUrl);
+        _unitOfWork.Verify(unitOfWork => unitOfWork.SaveChangesAsync(CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -45,14 +49,34 @@ public class UpdateMoviePosterCommandHandlerTests
         using var content = new MemoryStream([1, 2, 3]);
         var command = CreateCommand(movie.Id, content, "poster.jpg", "image/jpeg");
         _movieRepository.Setup(repository => repository.GetByIdAsync(movie.Id, It.IsAny<CancellationToken>())).ReturnsAsync(movie);
-        _fileStorage
-            .Setup(storage => storage.UploadAsync(It.IsAny<string>(), content, "image/jpeg", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(UploadedPosterUrl);
 
         await _handler.Handle(command, CancellationToken.None);
 
         Assert.Equal(UploadedPosterUrl, movie.PosterUrl);
         _movieSearchService.Verify(service => service.IndexAsync(movie, CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_CommitsBeforeCallingTheOtherServices()
+    {
+        var movie = CreateMovie();
+        using var content = new MemoryStream([1, 2, 3]);
+        var command = CreateCommand(movie.Id, content, "poster.jpg", "image/jpeg");
+        var calls = new List<string>();
+        _movieRepository.Setup(repository => repository.GetByIdAsync(movie.Id, It.IsAny<CancellationToken>())).ReturnsAsync(movie);
+        _fileStorage
+            .Setup(storage => storage.UploadAsync(It.IsAny<string>(), content, "image/jpeg", It.IsAny<CancellationToken>()))
+            .Callback(() => calls.Add("upload"))
+            .Returns(Task.CompletedTask);
+        _unitOfWork.Setup(unitOfWork => unitOfWork.SaveChangesAsync(It.IsAny<CancellationToken>())).Callback(() => calls.Add("save")).ReturnsAsync(1);
+        _movieSearchService
+            .Setup(service => service.IndexAsync(It.IsAny<Movie>(), It.IsAny<CancellationToken>()))
+            .Callback(() => calls.Add("index"))
+            .Returns(Task.CompletedTask);
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        Assert.Equal(["save", "upload", "index"], calls);
     }
 
     [Fact]
@@ -70,10 +94,7 @@ public class UpdateMoviePosterCommandHandlerTests
             storage => storage.UploadAsync(It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never
         );
-        _movieRepository.Verify(
-            repository => repository.UpdatePosterUrlAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
+        _unitOfWork.Verify(unitOfWork => unitOfWork.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         _movieSearchService.Verify(service => service.IndexAsync(It.IsAny<Movie>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -94,7 +115,7 @@ public class UpdateMoviePosterCommandHandlerTests
         _fileStorage
             .Setup(storage => storage.UploadAsync(It.IsAny<string>(), content, "image/jpeg", It.IsAny<CancellationToken>()))
             .Callback<string, Stream, string, CancellationToken>((key, _, _, _) => uploadedKey = key)
-            .ReturnsAsync(UploadedPosterUrl);
+            .Returns(Task.CompletedTask);
 
         await _handler.Handle(command, CancellationToken.None);
 
@@ -102,7 +123,7 @@ public class UpdateMoviePosterCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ForwardsCancellationTokenToRepositoryAndStorage()
+    public async Task Handle_ForwardsCancellationTokenToRepositoryUnitOfWorkAndStorage()
     {
         var movie = CreateMovie();
         using var content = new MemoryStream([1, 2, 3]);
@@ -111,16 +132,14 @@ public class UpdateMoviePosterCommandHandlerTests
         _movieRepository.Setup(repository => repository.GetByIdAsync(movie.Id, cancellationTokenSource.Token)).ReturnsAsync(movie);
         _fileStorage
             .Setup(storage => storage.UploadAsync(It.IsAny<string>(), content, "image/jpeg", cancellationTokenSource.Token))
-            .ReturnsAsync(UploadedPosterUrl);
+            .Returns(Task.CompletedTask);
+        _unitOfWork.Setup(unitOfWork => unitOfWork.SaveChangesAsync(cancellationTokenSource.Token)).ReturnsAsync(1);
 
         await _handler.Handle(command, cancellationTokenSource.Token);
 
         _movieRepository.Verify(repository => repository.GetByIdAsync(movie.Id, cancellationTokenSource.Token), Times.Once);
         _fileStorage.Verify(storage => storage.UploadAsync(It.IsAny<string>(), content, "image/jpeg", cancellationTokenSource.Token), Times.Once);
-        _movieRepository.Verify(
-            repository => repository.UpdatePosterUrlAsync(movie.Id, UploadedPosterUrl, cancellationTokenSource.Token),
-            Times.Once
-        );
+        _unitOfWork.Verify(unitOfWork => unitOfWork.SaveChangesAsync(cancellationTokenSource.Token), Times.Once);
         _movieSearchService.Verify(service => service.IndexAsync(movie, cancellationTokenSource.Token), Times.Once);
     }
 

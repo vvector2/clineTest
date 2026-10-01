@@ -21,29 +21,11 @@ public class MovieRepository : IMovieRepository
 
     public async Task<Movie?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Movies.AsNoTracking().FirstOrDefaultAsync(movie => movie.Id == id, cancellationToken);
+        return await _dbContext.Movies.FirstOrDefaultAsync(movie => movie.Id == id, cancellationToken);
     }
 
-    public async Task AddAsync(Movie movie, CancellationToken cancellationToken = default)
+    public void Add(Movie movie)
     {
         _dbContext.Movies.Add(movie);
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task<bool> UpdatePosterUrlAsync(Guid id, string posterUrl, CancellationToken cancellationToken = default)
-    {
-        var movie = await _dbContext.Movies.FirstOrDefaultAsync(movie => movie.Id == id, cancellationToken);
-
-        if (movie is null)
-        {
-            return false;
-        }
-
-        movie.PosterUrl = posterUrl;
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-        return true;
     }
 }

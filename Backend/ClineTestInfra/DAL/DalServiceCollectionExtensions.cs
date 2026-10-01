@@ -17,6 +17,7 @@ public static class DalServiceCollectionExtensions
         var serverVersion = ServerVersion.AutoDetect(connectionString);
 
         services.AddDbContext<ClineTestDbContext>(options => options.UseMySql(connectionString, serverVersion));
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IMovieRepository, MovieRepository>();
 
         return services;
