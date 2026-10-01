@@ -1,6 +1,7 @@
 ---
 name: sonar-scan
 description: Run sonar scan locally and return the results.
+disabled: true
 ---
 
 ## Steps

@@ -1,6 +1,9 @@
 ---
 name: formatbackend
-description: Run formatting on backend code files to ensure consistent style and readability.
+description: >-
+  Run formatting on backend code files to ensure consistent style and
+  readability.
+disabled: true
 ---
 
 # formatbackend

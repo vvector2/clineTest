@@ -1,6 +1,7 @@
 ---
 name: unit-tests
 description: Write unit tests for the backend application.
+disabled: true
 ---
 
 # unit-tests
