@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ClientTestApi.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class MoviesController : ControllerBase
 {
     private const long MaxPosterSizeInBytes = 10 * 1024 * 1024;

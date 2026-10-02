@@ -4,7 +4,6 @@ description: >-
   This skill is used to write and run integration test for current feature. It
   is used to verify that the feature works as expected when integrated with
   other components of the system.
-disabled: true
 ---
 
 ## Steps

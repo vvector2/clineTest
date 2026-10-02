@@ -3,18 +3,18 @@ import react from '@vitejs/plugin-react';
 import { loadEnv } from 'vite';
 import { defineConfig } from 'vitest/config';
 
-const DEFAULT_API_PROXY_TARGET = 'http://localhost:5297';
+const DEFAULT_API_PROXY_TARGET = 'https://localhost:7072';
 const API_PROXY_PREFIX = '/api';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const apiProxyTarget = env.VITE_API_PROXY_TARGET ?? DEFAULT_API_PROXY_TARGET;
+  const configuredTarget = env.VITE_API_PROXY_TARGET?.trim() ?? '';
+  const apiProxyTarget = configuredTarget.length > 0 ? configuredTarget : DEFAULT_API_PROXY_TARGET;
 
   const apiProxy = {
     target: apiProxyTarget,
     changeOrigin: true,
     secure: false,
-    rewrite: (path: string) => path.replace(new RegExp(`^${API_PROXY_PREFIX}`), ''),
   };
 
   return {

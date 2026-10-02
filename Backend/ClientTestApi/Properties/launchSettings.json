@@ -9,31 +9,12 @@
     }
   },
   "profiles": {
-    "http": {
-      "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": true,
-      "launchUrl": "swagger",
-      "applicationUrl": "http://localhost:5297",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "CLINETEST_DB_CONNECTION": "Server=localhost;Port=3306;Database=clinetest;User Id=clinetest;Password=clinetest;",
-        "CLINETEST_S3_BUCKET": "clinetest-posters",
-        "CLINETEST_S3_REGION": "us-east-1",
-        "CLINETEST_S3_SERVICE_URL": "http://localhost:4566",
-        "CLINETEST_S3_ACCESS_KEY": "test",
-        "CLINETEST_S3_SECRET_KEY": "test",
-        "CLINETEST_S3_FORCE_PATH_STYLE": "true",
-        "CLINETEST_ELASTICSEARCH_URL": "http://localhost:9200",
-        "CLINETEST_ELASTICSEARCH_INDEX": "movies"
-      }
-    },
     "https": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "swagger",
-      "applicationUrl": "https://localhost:7072;http://localhost:5297",
+      "applicationUrl": "https://localhost:7072",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "CLINETEST_DB_CONNECTION": "Server=localhost;Port=3306;Database=clinetest;User Id=clinetest;Password=clinetest;",

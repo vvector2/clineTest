@@ -40,4 +40,4 @@ class ApiClient:
         if path.startswith(("http://", "https://")):
             return path
 
-        return f"{self._base_url}/{path.lstrip('/')}"
+        return f"{self._base_url}{config.API_PREFIX}/{path.lstrip('/')}"

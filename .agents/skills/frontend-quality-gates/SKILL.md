@@ -1,6 +1,9 @@
 ---
 name: frontend-quality-gates
-description: Basically when job is done It will assure that whole frontend codebase satisfy all quality gates in project
+description: >-
+  Basically when job is done It will assure that whole frontend codebase satisfy
+  all quality gates in project
+disabled: true
 ---
 
 # frontend-quality-gates

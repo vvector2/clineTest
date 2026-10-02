@@ -1,6 +1,10 @@
 import type { Movie } from '../types/movie';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api';
+const DEFAULT_API_BASE_URL = '/api';
+const TRAILING_SLASHES = /\/+$/;
+
+const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim() ?? '';
+const API_BASE_URL = configuredBaseUrl.length > 0 ? configuredBaseUrl.replace(TRAILING_SLASHES, '') : DEFAULT_API_BASE_URL;
 
 export class MoviesApiError extends Error {
   constructor(message: string) {

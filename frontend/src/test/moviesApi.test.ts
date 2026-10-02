@@ -1,5 +1,18 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getMovies, MoviesApiError } from '../api/moviesApi';
 import { createJsonResponse, createMovie, fetchMock, stubFetch } from './testUtils';
+
+async function fetchUrlForBaseUrl(baseUrl: string | undefined): Promise<string> {
+  vi.stubEnv('VITE_API_BASE_URL', baseUrl ?? '');
+  vi.resetModules();
+  stubFetch();
+  fetchMock.mockResolvedValue(createJsonResponse([]));
+
+  const module = await import('../api/moviesApi');
+  await module.getMovies('');
+
+  return fetchMock.mock.calls[0][0] as string;
+}
 
 describe('getMovies', () => {
   afterEach(() => {
@@ -83,5 +96,33 @@ describe('getMovies', () => {
     fetchMock.mockRejectedValue(abortError);
 
     await expect(getMovies('', new AbortController().signal)).rejects.toBe(abortError);
+  });
+});
+
+describe('getMovies base url', () => {
+  afterEach(() => {
+    fetchMock.mockReset();
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it('falls back to the api prefix when the variable is not set', async () => {
+    await expect(fetchUrlForBaseUrl(undefined)).resolves.toBe('/api/movies');
+  });
+
+  it('falls back to the api prefix when the variable is blank', async () => {
+    await expect(fetchUrlForBaseUrl('')).resolves.toBe('/api/movies');
+  });
+
+  it('falls back to the api prefix when the variable is only whitespace', async () => {
+    await expect(fetchUrlForBaseUrl('   ')).resolves.toBe('/api/movies');
+  });
+
+  it('uses a configured base url', async () => {
+    await expect(fetchUrlForBaseUrl('https://localhost:7072')).resolves.toBe('https://localhost:7072/movies');
+  });
+
+  it('strips a trailing slash from the configured base url', async () => {
+    await expect(fetchUrlForBaseUrl('https://localhost:7072/')).resolves.toBe('https://localhost:7072/movies');
   });
 });
