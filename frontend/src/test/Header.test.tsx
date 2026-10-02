@@ -7,6 +7,7 @@ describe('Header', () => {
     render(<Header searchPhrase="" onSearchPhraseChange={vi.fn()} />);
 
     expect(screen.getByText('ClineFlix')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Cline logo' })).toBeInTheDocument();
     expect(screen.getByRole('searchbox')).toBeInTheDocument();
   });
 
