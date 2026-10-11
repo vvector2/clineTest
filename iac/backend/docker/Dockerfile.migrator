@@ -1,0 +1,45 @@
+# syntax=docker/dockerfile:1
+# Generates an EF Core migration bundle at build time, per
+# https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/applying
+# The resulting image contains no SDK, no EF tools and no application source.
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS bundle
+WORKDIR /src
+
+# Backend/.config/dotnet-tools.json pins dotnet-ef 9.0.0, matching EF Core 9 in
+# ClineTestInfra.csproj. Restoring from the manifest keeps a single version
+# source; installing a separate global tool would be shadowed by it anyway.
+COPY Backend/ ./
+
+RUN dotnet tool restore
+
+RUN dotnet ef migrations bundle \
+    --configuration Release \
+    --project ClineTestInfra/ClineTestInfra.csproj \
+    --startup-project ClientTestApi/ClientTestApi.csproj \
+    --output /out/clinetest-migrations.dll
+
+# `migrations bundle` emits a single self-contained executable carrying the
+# executable bit, so it must be run directly. Running it through `dotnet`
+# fails with "libhostpolicy.so was not found", because a self-contained
+# bundle ships no .runtimeconfig.json.
+#
+# The base image must be the ASP.NET Core runtime, not the plain .NET runtime:
+# the bundle is generated from ClientTestApi as the startup project, so it
+# requires the Microsoft.AspNetCore.App framework.
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+
+# The bundle does not populate IConfiguration from the pod environment: the
+# design-time host used by `migrations bundle` resolves AddDbContext without
+# reading ConnectionStrings__DefaultConnection, so it falls back to an empty
+# connection string ("database '' on server 'localhost'"). The connection is
+# therefore passed explicitly through the CLINETEST_MIGRATION_CONNECTION
+# variable, which the Job manifest sets from the Secret.
+ENV CLINETEST_MIGRATION_CONNECTION=""
+
+WORKDIR /app
+
+COPY --from=bundle /out/ ./
+
+USER app
+
+ENTRYPOINT ["/bin/sh", "-c", "exec /app/clinetest-migrations.dll --connection \"$CLINETEST_MIGRATION_CONNECTION\""]

@@ -16,12 +16,12 @@ public class MovieRepository : IMovieRepository
 
     public async Task<IEnumerable<Movie>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Movies.AsNoTracking().ToListAsync(cancellationToken);
+        return await _dbContext.Movies.Include(m => m.Genres).AsNoTracking().ToListAsync(cancellationToken);
     }
 
     public async Task<Movie?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Movies.FirstOrDefaultAsync(movie => movie.Id == id, cancellationToken);
+        return await _dbContext.Movies.Include(m => m.Genres).FirstOrDefaultAsync(movie => movie.Id == id, cancellationToken);
     }
 
     public void Add(Movie movie)

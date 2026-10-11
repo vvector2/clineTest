@@ -9,7 +9,7 @@ public sealed class ElasticsearchMovieSearchService : IMovieSearchService
 {
     private const int MaxResults = 50;
 
-    private static readonly string[] SearchableFields = ["title", "director", "description", "overview"];
+    private static readonly string[] SearchableFields = ["title", "director", "description", "overview", "genres"];
 
     private readonly ElasticsearchClient _client;
     private readonly ElasticsearchOptions _options;

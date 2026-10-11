@@ -7,6 +7,7 @@ export interface Movie {
   overview: string;
   originalLanguage: string;
   posterUrl: string;
+  genres?: string[];
 }
 
 export interface MovieYearGroup {

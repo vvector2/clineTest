@@ -23,6 +23,9 @@ class ApiClient:
     def put(self, path, **kwargs):
         return self._request("PUT", path, **kwargs)
 
+    def put_movie(self, movie_id, payload):
+        return self.put(f"/movies/{movie_id}", json=payload)
+
     def put_movie_poster(self, movie_id, content, file_name="poster.png", content_type="image/png"):
         return self.put(
             "/movies/poster",

@@ -5,10 +5,16 @@ namespace ClineTestInfra.DAL;
 
 public class ClineTestDbContext : DbContext
 {
+    public static readonly Guid ShawshankMovieId = Guid.Parse("3f2504e0-4f89-41d3-9a0c-0305e82c3301");
+    public static readonly Guid GodfatherMovieId = Guid.Parse("3f2504e0-4f89-41d3-9a0c-0305e82c3302");
+    public static readonly Guid ParasiteMovieId = Guid.Parse("3f2504e0-4f89-41d3-9a0c-0305e82c3303");
+
     public ClineTestDbContext(DbContextOptions<ClineTestDbContext> options)
         : base(options) { }
 
     public DbSet<Movie> Movies => Set<Movie>();
+
+    public DbSet<Genre> Genres => Set<Genre>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -23,10 +29,49 @@ public class ClineTestDbContext : DbContext
         movie.Property(m => m.OriginalLanguage).HasMaxLength(100);
         movie.Property(m => m.PosterUrl).HasMaxLength(500);
 
+        var genre = modelBuilder.Entity<Genre>();
+
+        genre.ToTable("genres");
+        genre.HasKey(g => g.Name);
+        genre.Property(g => g.Name).HasMaxLength(100).IsRequired();
+
+        movie
+            .HasMany(m => m.Genres)
+            .WithMany(g => g.Movies)
+            .UsingEntity<Dictionary<string, object>>(
+                "MovieGenre",
+                right =>
+                    right
+                        .HasOne<Genre>()
+                        .WithMany()
+                        .HasForeignKey("GenreName")
+                        .HasConstraintName("FK_movie_genres_genres")
+                        .OnDelete(DeleteBehavior.Cascade),
+                left =>
+                    left.HasOne<Movie>()
+                        .WithMany()
+                        .HasForeignKey("MoviesId")
+                        .HasConstraintName("FK_movie_genres_movies")
+                        .OnDelete(DeleteBehavior.Cascade),
+                join =>
+                {
+                    join.ToTable("movie_genres");
+                    join.HasKey("MoviesId", "GenreName");
+                    join.HasData(
+                        new { MoviesId = ShawshankMovieId, GenreName = "Drama" },
+                        new { MoviesId = ShawshankMovieId, GenreName = "Crime" },
+                        new { MoviesId = GodfatherMovieId, GenreName = "Crime" },
+                        new { MoviesId = GodfatherMovieId, GenreName = "Drama" },
+                        new { MoviesId = ParasiteMovieId, GenreName = "Thriller" },
+                        new { MoviesId = ParasiteMovieId, GenreName = "Drama" }
+                    );
+                }
+            );
+
         movie.HasData(
             new Movie
             {
-                Id = Guid.Parse("3f2504e0-4f89-41d3-9a0c-0305e82c3301"),
+                Id = ShawshankMovieId,
                 Title = "The Shawshank Redemption",
                 Year = 1994,
                 Description = "Two imprisoned men bond over a number of years.",
@@ -37,7 +82,7 @@ public class ClineTestDbContext : DbContext
             },
             new Movie
             {
-                Id = Guid.Parse("3f2504e0-4f89-41d3-9a0c-0305e82c3302"),
+                Id = GodfatherMovieId,
                 Title = "The Godfather",
                 Year = 1972,
                 Description = "The aging patriarch of an organized crime dynasty transfers control to his reluctant son.",
@@ -48,7 +93,7 @@ public class ClineTestDbContext : DbContext
             },
             new Movie
             {
-                Id = Guid.Parse("3f2504e0-4f89-41d3-9a0c-0305e82c3303"),
+                Id = ParasiteMovieId,
                 Title = "Parasite",
                 Year = 2019,
                 Description = "Greed and class discrimination threaten the newly formed symbiotic relationship between two families.",
@@ -58,5 +103,7 @@ public class ClineTestDbContext : DbContext
                 PosterUrl = "https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg",
             }
         );
+
+        genre.HasData(new Genre { Name = "Drama" }, new Genre { Name = "Crime" }, new Genre { Name = "Thriller" });
     }
 }

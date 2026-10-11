@@ -1,2 +1,9 @@
 # Shell scripts executed inside the LocalStack container must use LF line endings.
 docker/localstack/init/ready.d/*.sh text eol=lf
+
+# Scripts executed inside WSL must use LF, otherwise bash fails on the \r.
+iac/backend/scripts/*.sh text eol=lf
+
+# Dockerfiles and Kubernetes manifests are read by Linux tooling as well.
+iac/backend/docker/Dockerfile.* text eol=lf
+iac/backend/cluster/*.yaml text eol=lf

@@ -19,6 +19,7 @@ public static class DalServiceCollectionExtensions
         services.AddDbContext<ClineTestDbContext>(options => options.UseMySql(connectionString, serverVersion));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IMovieRepository, MovieRepository>();
+        services.AddScoped<IGenreRepository, GenreRepository>();
 
         return services;
     }

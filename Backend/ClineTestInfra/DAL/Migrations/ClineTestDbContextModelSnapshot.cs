@@ -22,6 +22,31 @@ namespace ClineTestInfra.DAL.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("ClineTestCore.Models.Genre", b =>
+                {
+                    b.Property<string>("Name")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Name");
+
+                    b.ToTable("genres", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Name = "Drama"
+                        },
+                        new
+                        {
+                            Name = "Crime"
+                        },
+                        new
+                        {
+                            Name = "Thriller"
+                        });
+                });
+
             modelBuilder.Entity("ClineTestCore.Models.Movie", b =>
                 {
                     b.Property<Guid>("Id")
@@ -99,6 +124,70 @@ namespace ClineTestInfra.DAL.Migrations
                             Title = "Parasite",
                             Year = 2019
                         });
+                });
+
+            modelBuilder.Entity("MovieGenre", b =>
+                {
+                    b.Property<Guid>("MoviesId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("GenreName")
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("MoviesId", "GenreName");
+
+                    b.HasIndex("GenreName");
+
+                    b.ToTable("movie_genres", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            MoviesId = new Guid("3f2504e0-4f89-41d3-9a0c-0305e82c3301"),
+                            GenreName = "Drama"
+                        },
+                        new
+                        {
+                            MoviesId = new Guid("3f2504e0-4f89-41d3-9a0c-0305e82c3301"),
+                            GenreName = "Crime"
+                        },
+                        new
+                        {
+                            MoviesId = new Guid("3f2504e0-4f89-41d3-9a0c-0305e82c3302"),
+                            GenreName = "Crime"
+                        },
+                        new
+                        {
+                            MoviesId = new Guid("3f2504e0-4f89-41d3-9a0c-0305e82c3302"),
+                            GenreName = "Drama"
+                        },
+                        new
+                        {
+                            MoviesId = new Guid("3f2504e0-4f89-41d3-9a0c-0305e82c3303"),
+                            GenreName = "Thriller"
+                        },
+                        new
+                        {
+                            MoviesId = new Guid("3f2504e0-4f89-41d3-9a0c-0305e82c3303"),
+                            GenreName = "Drama"
+                        });
+                });
+
+            modelBuilder.Entity("MovieGenre", b =>
+                {
+                    b.HasOne("ClineTestCore.Models.Genre", null)
+                        .WithMany()
+                        .HasForeignKey("GenreName")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_movie_genres_genres");
+
+                    b.HasOne("ClineTestCore.Models.Movie", null)
+                        .WithMany()
+                        .HasForeignKey("MoviesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_movie_genres_movies");
                 });
 #pragma warning restore 612, 618
         }

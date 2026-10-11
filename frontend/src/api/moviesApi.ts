@@ -31,7 +31,9 @@ function isMovie(value: unknown): value is Movie {
     typeof candidate.id === 'string' &&
     typeof candidate.title === 'string' &&
     typeof candidate.year === 'number' &&
-    typeof candidate.posterUrl === 'string'
+    typeof candidate.posterUrl === 'string' &&
+    (candidate.genres === undefined ||
+      (Array.isArray(candidate.genres) && candidate.genres.every((genre) => typeof genre === 'string')))
   );
 }
 

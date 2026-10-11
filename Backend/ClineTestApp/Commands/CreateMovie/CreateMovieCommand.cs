@@ -31,4 +31,6 @@ public sealed record CreateMovieCommand : IRequest<Guid>
     [Url]
     [MaxLength(500)]
     public required string PosterUrl { get; init; }
+
+    public List<string> Genres { get; init; } = new();
 }

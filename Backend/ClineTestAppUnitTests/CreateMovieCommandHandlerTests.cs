@@ -9,6 +9,7 @@ namespace ClineTestAppUnitTests;
 public class CreateMovieCommandHandlerTests
 {
     private readonly Mock<IMovieRepository> _movieRepository = new();
+    private readonly Mock<IGenreRepository> _genreRepository = new();
     private readonly Mock<IUnitOfWork> _unitOfWork = new();
     private readonly Mock<IMovieSearchService> _movieSearchService = new();
     private readonly CreateMovieCommandHandler _handler;
@@ -16,7 +17,10 @@ public class CreateMovieCommandHandlerTests
     public CreateMovieCommandHandlerTests()
     {
         _unitOfWork.Setup(unitOfWork => unitOfWork.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-        _handler = new CreateMovieCommandHandler(_movieRepository.Object, _unitOfWork.Object, _movieSearchService.Object);
+        _genreRepository
+            .Setup(repository => repository.GetByNamesAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+        _handler = new CreateMovieCommandHandler(_movieRepository.Object, _genreRepository.Object, _unitOfWork.Object, _movieSearchService.Object);
     }
 
     [Fact]
@@ -105,5 +109,36 @@ public class CreateMovieCommandHandlerTests
             OriginalLanguage = "en",
             PosterUrl = "https://example.com/posters/interstellar.jpg",
         };
+    }
+
+    [Fact]
+    public async Task Handle_ReusesExistingGenresAndCreatesMissingOnesByName()
+    {
+        Movie? persistedMovie = null;
+        _movieRepository.Setup(repository => repository.Add(It.IsAny<Movie>())).Callback<Movie>(movie => persistedMovie = movie);
+        _genreRepository
+            .Setup(repository => repository.GetByNamesAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([new Genre { Name = "Drama" }]);
+        var command = CreateCommand() with { Genres = ["Drama", "Sci-Fi"] };
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        var movie = Assert.IsType<Movie>(persistedMovie);
+        Assert.Equal(["Drama", "Sci-Fi"], movie.Genres.Select(genre => genre.Name).OrderBy(name => name));
+    }
+
+    [Fact]
+    public async Task Handle_NormalizesGenreNamesBeforeResolving()
+    {
+        IEnumerable<string>? resolvedNames = null;
+        _genreRepository
+            .Setup(repository => repository.GetByNamesAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
+            .Callback<IEnumerable<string>, CancellationToken>((names, _) => resolvedNames = names)
+            .ReturnsAsync([]);
+        var command = CreateCommand() with { Genres = ["  Drama ", "drama", "", "   "] };
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        Assert.Equal(["Drama"], Assert.IsAssignableFrom<IEnumerable<string>>(resolvedNames));
     }
 }

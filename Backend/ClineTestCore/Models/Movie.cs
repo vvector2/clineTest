@@ -10,4 +10,5 @@ public class Movie
     public required string Overview { get; set; }
     public required string OriginalLanguage { get; set; }
     public required string PosterUrl { get; set; }
+    public ICollection<Genre> Genres { get; set; } = new List<Genre>();
 }

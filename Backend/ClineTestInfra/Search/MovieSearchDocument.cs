@@ -29,6 +29,9 @@ internal sealed class MovieSearchDocument
     [JsonPropertyName("posterUrl")]
     public string PosterUrl { get; set; } = string.Empty;
 
+    [JsonPropertyName("genres")]
+    public List<string> Genres { get; set; } = new();
+
     public static MovieSearchDocument FromMovie(Movie movie)
     {
         return new MovieSearchDocument
@@ -41,6 +44,7 @@ internal sealed class MovieSearchDocument
             Overview = movie.Overview,
             OriginalLanguage = movie.OriginalLanguage,
             PosterUrl = movie.PosterUrl,
+            Genres = movie.Genres.Select(genre => genre.Name).ToList(),
         };
     }
 
@@ -56,6 +60,7 @@ internal sealed class MovieSearchDocument
             Overview = Overview,
             OriginalLanguage = OriginalLanguage,
             PosterUrl = PosterUrl,
+            Genres = Genres.Select(name => new Genre { Name = name }).ToList(),
         };
     }
 }

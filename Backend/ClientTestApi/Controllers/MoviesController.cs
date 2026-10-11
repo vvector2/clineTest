@@ -1,10 +1,10 @@
 using ClientTestApi.Models;
 using ClineTestApp.Commands.CreateMovie;
+using ClineTestApp.Commands.UpdateMovie;
 using ClineTestApp.Commands.UpdateMoviePoster;
 using ClineTestApp.Queries.GetMovieById;
 using ClineTestApp.Queries.GetMovies;
 using ClineTestApp.Queries.SearchMovies;
-using ClineTestCore.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,17 +24,17 @@ public class MoviesController : ControllerBase
     }
 
     [HttpGet(Name = "GetMovies")]
-    public async Task<ActionResult<IEnumerable<Movie>>> GetAsync([FromQuery] string? query, CancellationToken cancellationToken)
+    public async Task<ActionResult<IEnumerable<MovieResponse>>> GetAsync([FromQuery] string? query, CancellationToken cancellationToken)
     {
         var movies = string.IsNullOrWhiteSpace(query)
             ? await _mediator.Send(new GetMoviesQuery(), cancellationToken)
             : await _mediator.Send(new SearchMoviesQuery(query), cancellationToken);
 
-        return Ok(movies);
+        return Ok(movies.Select(MovieResponse.FromMovie));
     }
 
     [HttpGet("{id:guid}", Name = "GetMovieById")]
-    public async Task<ActionResult<Movie>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<MovieResponse>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         var movie = await _mediator.Send(new GetMovieByIdQuery(id), cancellationToken);
 
@@ -43,7 +43,7 @@ public class MoviesController : ControllerBase
             return NotFound();
         }
 
-        return Ok(movie);
+        return Ok(MovieResponse.FromMovie(movie));
     }
 
     [HttpPost(Name = "CreateMovie")]
@@ -51,6 +51,19 @@ public class MoviesController : ControllerBase
     {
         var movieId = await _mediator.Send(command, cancellationToken);
         return StatusCode(StatusCodes.Status201Created, movieId);
+    }
+
+    [HttpPut("{id:guid}", Name = "UpdateMovie")]
+    public async Task<ActionResult<MovieResponse>> UpdateAsync(Guid id, UpdateMovieCommand command, CancellationToken cancellationToken)
+    {
+        var movie = await _mediator.Send(command with { Id = id }, cancellationToken);
+
+        if (movie is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(MovieResponse.FromMovie(movie));
     }
 
     [HttpPut("poster", Name = "UpdateMoviePoster")]

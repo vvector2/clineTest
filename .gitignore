@@ -437,3 +437,5 @@ scripts/job_state.json
 scripts/sonar-report-issues.json
 
 .sonarqube/
+
+.logs

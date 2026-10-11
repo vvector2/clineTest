@@ -24,6 +24,7 @@ export function createMovie(overrides: Partial<Movie> = {}): Movie {
     overview: 'Neo learns what the Matrix really is.',
     originalLanguage: 'English',
     posterUrl: 'http://localhost:4566/clinetest-posters/movies/1111.jpg',
+    genres: [],
     ...overrides,
   };
 }
